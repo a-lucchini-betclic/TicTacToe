@@ -12,6 +12,9 @@ void main() {
   testWidgets('a full game against the hard CPU is recorded as a loss', (
     tester,
   ) async {
+    // The finders below match English text, whatever the device language is.
+    tester.platformDispatcher.localesTestValue = const [Locale('en')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     // Start from a clean score on the test device.
     await (await SharedPreferences.getInstance()).clear();
     await tester.pumpWidget(await app.createApp());
@@ -29,9 +32,22 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    expect(find.text('Losses'), findsOneWidget);
-    expect(find.text('1'), findsOneWidget);
+    _expectScoreTile('Wins', '0');
+    _expectScoreTile('Draws', '0');
+    _expectScoreTile('Losses', '1');
   });
+}
+
+/// Expects the score tile labelled [label] to show [value].
+void _expectScoreTile(String label, String value) {
+  final tile = find
+      .ancestor(of: find.text(label), matching: find.byType(Column))
+      .first;
+  expect(
+    find.descendant(of: tile, matching: find.text(value)),
+    findsOneWidget,
+    reason: 'the $label tile should show $value',
+  );
 }
 
 /// Taps the cell at [index], then pumps real frames until [expected] shows.
