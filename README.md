@@ -6,7 +6,8 @@ of Clean Architecture and production-grade engineering practices.
 - Human vs CPU, with three difficulty levels (the hardest never loses)
 - Pick X or O — X always opens, so picking O lets the CPU start
 - Persistent score (wins, draws, losses)
-- English and French, light and dark themes, screen-reader friendly
+- English and French, light and dark themes, screen-reader friendly; the
+  game screen adapts to landscape and large text
 
 ## Getting started
 
@@ -25,8 +26,9 @@ flutter run              # on a simulator, an emulator or a device
 | Static analysis | `flutter analyze` |
 | Formatting check | `dart format --output=none --set-exit-if-changed .` |
 
-CI (`.github/workflows/ci.yml`) runs formatting, analysis and tests on every
-push and pull request, and fails below 90 % line coverage.
+CI (`.github/workflows/ci.yml`) runs on pushes to `main` and on pull
+requests. One job checks formatting, analysis and tests and fails below 90 %
+line coverage; a second one builds the Android debug APK.
 
 ## Architecture
 
@@ -36,6 +38,7 @@ pointing inwards only.
 ```mermaid
 flowchart LR
   presentation["presentation<br/>Flutter · Riverpod"] --> domain["domain<br/>pure Dart"]
+  presentation --> l10n["l10n<br/>ARB files"]
   data["data<br/>shared_preferences"] --> domain
   main["main.dart<br/>composition root"] --> presentation
   main --> data
@@ -43,9 +46,9 @@ flowchart LR
 
 | Layer | Contents | May import |
 |---|---|---|
-| `lib/domain` | Entities (`Board`, `Game`, `GameStatus`, `Score`…), the CPU strategies, the `ScoreRepository` port and the use cases (`PlayCpuTurn`, `GetScore`, `RecordGameOutcome`) | Dart only (`equatable`) |
-| `lib/data` | `SharedPreferencesScoreRepository` and its JSON `ScoreDto` | domain |
-| `lib/presentation` | Riverpod providers (the dependency graph), controllers, pages and widgets | domain, l10n |
+| `lib/domain` | Entities (`Board`, `Game`, `GameStatus`, `Score`…), the CPU strategies, the `ScoreRepository` port and the use cases (`PlayCpuTurn`, `GetScore`, `RecordGameOutcome`) | Dart only, plus `equatable` |
+| `lib/data` | `SharedPreferencesScoreRepository` and its JSON `ScoreDto` | domain, Flutter foundation, `shared_preferences` |
+| `lib/presentation` | Riverpod providers (the dependency graph), controllers, pages and widgets | domain, l10n, Flutter, Riverpod |
 | `lib/main.dart` | Composition root: builds the data layer and injects it by overriding `scoreRepositoryProvider` | everything |
 
 `test/architecture_test.dart` fails the build if a layer imports something
@@ -101,7 +104,7 @@ lib/
 | Data unit tests | Save/load round trip, storage format, corrupted data |
 | Controller tests | CPU delay, ignored taps, score recording, restart, cleanup on dispose |
 | Widget tests | Board (taps, sizing, semantics), status text, game and home pages, French locale |
-| Integration test | A full game against the Hard CPU on a real device, score persisted |
+| Integration test | A full game against the Hard CPU through the production wiring (`createApp`), on a simulator, an emulator or a device; the score is recorded and shown |
 
 ## Trade-offs and next steps
 
@@ -109,6 +112,9 @@ lib/
   (`FlutterError.onError`, `PlatformDispatcher.instance.onError`).
 - **Settings and in-progress games** are not persisted; both would reuse the
   repository pattern used for the score.
+- **Leaving a game before it ends records nothing.** This is a deliberate
+  product choice; counting it as a loss (a forfeit rule) would be the
+  alternative.
 - **Minimax runs on the UI isolate.** Its worst case, an empty 3x3 board,
   takes about 2.5 ms on a laptop, well under a 16 ms frame. Larger boards
   would need an isolate (`compute`) or a depth-limited search.
