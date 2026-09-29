@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tic_tac_toe/domain/entities/difficulty.dart';
+import 'package:tic_tac_toe/domain/entities/game_outcome.dart';
 import 'package:tic_tac_toe/domain/entities/game_settings.dart';
 import 'package:tic_tac_toe/domain/entities/mark.dart';
 import 'package:tic_tac_toe/domain/entities/score.dart';
 import 'package:tic_tac_toe/presentation/game/game_page.dart';
 import 'package:tic_tac_toe/presentation/home/home_page.dart';
 import 'package:tic_tac_toe/presentation/providers.dart';
+import 'package:tic_tac_toe/presentation/score/score_controller.dart';
 
 import '../../helpers/fixed_random.dart';
 import '../../helpers/in_memory_score_repository.dart';
@@ -39,6 +42,31 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Your score could not be loaded.'), findsOneWidget);
+    });
+
+    testWidgets('keeps the score visible when saving a game fails', (
+      tester,
+    ) async {
+      final repository = InMemoryScoreRepository(
+        const Score(wins: 3, losses: 5, draws: 7),
+      );
+      await tester.pumpApp(const HomePage(), scoreRepository: repository);
+      await tester.pumpAndSettle();
+
+      repository.error = Exception('disk');
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HomePage)),
+      );
+      await container
+          .read(scoreControllerProvider.notifier)
+          .record(GameOutcome.win);
+      await tester.pumpAndSettle();
+
+      expect(container.read(scoreControllerProvider).hasError, isTrue);
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('5'), findsOneWidget);
+      expect(find.text('7'), findsOneWidget);
+      expect(find.text('Your score could not be loaded.'), findsNothing);
     });
 
     testWidgets('starts a game as X on medium by default', (tester) async {

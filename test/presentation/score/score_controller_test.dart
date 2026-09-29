@@ -41,6 +41,22 @@ void main() {
       expect(repository.score, const Score(wins: 1, draws: 1));
     });
 
+    test(
+      'a failed record keeps the previous score alongside the error',
+      () async {
+        await container.read(scoreControllerProvider.future);
+        repository.error = Exception('disk');
+
+        await container
+            .read(scoreControllerProvider.notifier)
+            .record(GameOutcome.draw);
+
+        final state = container.read(scoreControllerProvider);
+        expect(state.hasError, isTrue);
+        expect(state.value, const Score(wins: 1));
+      },
+    );
+
     test('exposes an error when the score cannot be loaded', () async {
       repository.error = Exception('disk');
 

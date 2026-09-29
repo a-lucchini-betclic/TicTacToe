@@ -15,7 +15,10 @@ class ScoreBoard extends ConsumerWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        // A failed save leaves an error next to the previous score: keep
+        // showing it. The error text is for a score that never loaded.
         child: score.when(
+          skipError: true,
           data: (score) => Row(
             children: [
               _Stat(label: l10n.scoreWins, value: score.wins),
