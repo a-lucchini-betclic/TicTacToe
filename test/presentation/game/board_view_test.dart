@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tic_tac_toe/domain/entities/board.dart';
 import 'package:tic_tac_toe/presentation/game/widgets/board_view.dart';
+import 'package:tic_tac_toe/presentation/theme.dart';
 
 import '../../helpers/board_builder.dart';
 import '../../helpers/pump_app.dart';
@@ -85,16 +86,38 @@ void main() {
         highlightedCells: [0, 1, 2],
       );
 
-      Color? colorOf(int index) => tester
-          .widget<Material>(
-            find
-                .ancestor(of: _cell(index), matching: find.byType(Material))
-                .first,
-          )
-          .color;
+      Material materialOf(int index) => tester.widget<Material>(
+        find.ancestor(of: _cell(index), matching: find.byType(Material)).first,
+      );
+      BorderSide borderOf(int index) => switch (materialOf(index).shape) {
+        RoundedRectangleBorder(:final side) => side,
+        _ => BorderSide.none,
+      };
 
-      expect(colorOf(0), colorOf(2));
-      expect(colorOf(0), isNot(colorOf(3)));
+      expect(materialOf(0).color, materialOf(2).color);
+      expect(materialOf(0).color, isNot(materialOf(3).color));
+      for (final index in [0, 1, 2]) {
+        expect(
+          borderOf(index),
+          BorderSide(color: AppTheme.light.colorScheme.primary, width: 4),
+        );
+      }
+      for (final index in [3, 4, 5, 6, 7, 8]) {
+        expect(borderOf(index), BorderSide.none);
+      }
+    });
+
+    testWidgets('draws the highlight inside the cell', (tester) async {
+      await pumpBoard(tester, boardOf('XXXOO....'));
+      final plainSize = tester.getSize(_cell(0));
+
+      await pumpBoard(
+        tester,
+        boardOf('XXXOO....'),
+        highlightedCells: [0, 1, 2],
+      );
+
+      expect(tester.getSize(_cell(0)), plainSize);
     });
   });
 }

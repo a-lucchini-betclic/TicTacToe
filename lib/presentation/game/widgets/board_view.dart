@@ -93,7 +93,15 @@ class _Cell extends StatelessWidget {
         color: highlighted
             ? colors.primaryContainer
             : colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
+        // The fill alone is too close to the plain cells, so the winning line
+        // also gets a border, which is drawn inside the cell (the default
+        // stroke alignment) so the cell keeps its size.
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: highlighted
+              ? BorderSide(color: colors.primary, width: 4)
+              : BorderSide.none,
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           key: ValueKey('cell-$index'),
