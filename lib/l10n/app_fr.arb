@@ -15,10 +15,10 @@
   "gameSummary": "Vous jouez {mark} · {difficulty}",
   "statusYourTurn": "À vous de jouer",
   "statusCpuThinking": "L'ordinateur réfléchit…",
-  "statusYouWon": "Vous avez gagné !",
+  "statusYouWon": "Vous avez gagné\u202f!",
   "statusCpuWon": "L'ordinateur gagne",
   "statusDraw": "Match nul",
   "playAgain": "Rejouer",
   "cellEmpty": "vide",
-  "cellLabel": "Ligne {row}, colonne {column} : {content}"
+  "cellLabel": "Ligne {row}, colonne {column}\u00a0: {content}"
 }
