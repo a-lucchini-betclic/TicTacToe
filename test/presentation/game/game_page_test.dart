@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tic_tac_toe/domain/entities/board.dart';
 import 'package:tic_tac_toe/domain/entities/difficulty.dart';
 import 'package:tic_tac_toe/domain/entities/game_settings.dart';
 import 'package:tic_tac_toe/domain/entities/mark.dart';
 import 'package:tic_tac_toe/domain/entities/score.dart';
 import 'package:tic_tac_toe/presentation/game/game_page.dart';
+import 'package:tic_tac_toe/presentation/game/widgets/board_view.dart';
 import 'package:tic_tac_toe/presentation/providers.dart';
 
 import '../../helpers/fixed_random.dart';
@@ -95,6 +97,97 @@ void main() {
       expect(find.text('Your turn'), findsOneWidget);
       expect(find.text('X'), findsNothing);
       expect(find.text('Play again'), findsNothing);
+    });
+
+    group('layout', () {
+      /// A phone held sideways.
+      const landscape = Size(874, 402);
+      const portrait = Size(402, 874);
+
+      void useScreen(WidgetTester tester, Size size, {double textScale = 1}) {
+        tester.view
+          ..physicalSize = size
+          ..devicePixelRatio = 1;
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      }
+
+      /// Human X wins on 3, 4, 5, the CPU (first empty cell) playing 0 and 1.
+      Future<void> playToTheEnd(WidgetTester tester) async {
+        await playTurn(tester, 3);
+        await playTurn(tester, 4);
+        await playTurn(tester, 5);
+        expect(find.text('Play again'), findsOneWidget);
+      }
+
+      testWidgets('keeps every cell tappable in landscape', (tester) async {
+        useScreen(tester, landscape);
+        await pumpGame(tester, _humanIsX);
+
+        expect(tester.takeException(), isNull);
+        final board = tester.getRect(find.byType(BoardView));
+        expect(board.width, board.height);
+        for (var index = 0; index < Board.cellCount; index++) {
+          final size = tester.getSize(find.byKey(ValueKey('cell-$index')));
+          expect(size.width, greaterThanOrEqualTo(48));
+          expect(size.height, greaterThanOrEqualTo(48));
+        }
+      });
+
+      testWidgets('puts the status beside the board in landscape', (
+        tester,
+      ) async {
+        useScreen(tester, landscape);
+        await pumpGame(tester, _humanIsX);
+
+        final board = tester.getRect(find.byType(BoardView));
+        final status = tester.getRect(find.text('Your turn'));
+        expect(status.left, greaterThanOrEqualTo(board.right));
+      });
+
+      testWidgets('survives large text in landscape', (tester) async {
+        useScreen(tester, landscape, textScale: 2);
+        await pumpGame(tester, _humanIsX);
+        await playToTheEnd(tester);
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('You won!'), findsOneWidget);
+        final button = tester.getSize(find.byType(FilledButton));
+        expect(button.height, greaterThanOrEqualTo(48));
+        expect(
+          tester.getSize(find.byKey(const ValueKey('cell-0'))).shortestSide,
+          greaterThanOrEqualTo(48),
+        );
+      });
+
+      testWidgets('lets the Play again button grow with the text', (
+        tester,
+      ) async {
+        useScreen(tester, portrait, textScale: 3);
+        await pumpGame(tester, _humanIsX);
+        await playToTheEnd(tester);
+
+        expect(tester.takeException(), isNull);
+        // The slot grows with the text instead of capping the button at 48.
+        expect(
+          tester.getSize(find.byType(FilledButton)).height,
+          greaterThan(48),
+        );
+      });
+
+      testWidgets('survives large text in portrait', (tester) async {
+        useScreen(tester, portrait, textScale: 2);
+        await pumpGame(tester, _humanIsX);
+        await playToTheEnd(tester);
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('You won!'), findsOneWidget);
+        expect(
+          tester.getSize(find.byType(FilledButton)).height,
+          greaterThanOrEqualTo(48),
+        );
+      });
     });
   });
 }
