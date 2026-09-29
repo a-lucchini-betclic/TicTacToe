@@ -10,13 +10,15 @@ void main() {
     final strategy = WinOrBlockMoveStrategy(FixedRandom());
 
     test('completes its own line', () {
+      // Cell 0 is both the block and the first empty cell: only 5 shows that
+      // O wins instead of blocking or falling back to the first cell.
       final board = boardOf('''
+        . X X
         O O .
-        X X .
         X . .
       ''');
 
-      expect(strategy.chooseMove(board, Mark.o), 2);
+      expect(strategy.chooseMove(board, Mark.o), 5);
     });
 
     test('prefers winning over blocking', () {

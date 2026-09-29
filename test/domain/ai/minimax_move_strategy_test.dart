@@ -12,23 +12,26 @@ void main() {
     const strategy = MinimaxMoveStrategy();
 
     test('takes an immediate win instead of blocking', () {
+      // Cell 0 is both the block and the first empty cell: only 5 shows that
+      // O goes for the win.
       final board = boardOf('''
+        . X X
         O O .
-        X X .
         X . .
       ''');
 
-      expect(strategy.chooseMove(board, Mark.o), 2);
+      expect(strategy.chooseMove(board, Mark.o), 5);
     });
 
     test("blocks the opponent's immediate win", () {
+      // The lowest empty cell is 0, so only 8 shows that O blocks.
       final board = boardOf('''
-        X X .
-        . O .
         . . .
+        . O .
+        X X .
       ''');
 
-      expect(strategy.chooseMove(board, Mark.o), 2);
+      expect(strategy.chooseMove(board, Mark.o), 8);
     });
 
     test('answers a corner opening with the center', () {
