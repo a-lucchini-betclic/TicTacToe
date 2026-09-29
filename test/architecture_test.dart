@@ -41,10 +41,10 @@ void main() {
   });
 }
 
-final _import = RegExp("^import '([^']+)';", multiLine: true);
+final _import = RegExp(r"^\s*(?:import|export)\s+'([^']+)'", multiLine: true);
 
-/// Lists `file imports uri` for every import under [directory] that starts
-/// with one of the [forbidden] prefixes.
+/// Lists `file imports uri` for every import or export under [directory] that
+/// starts with one of the [forbidden] prefixes.
 List<String> _forbiddenImports(String directory, List<String> forbidden) {
   final files = Directory(directory)
       .listSync(recursive: true)
