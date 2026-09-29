@@ -1,20 +1,25 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tic_tac_toe/data/repositories/shared_preferences_score_repository.dart';
+import 'package:tic_tac_toe/presentation/app.dart';
+import 'package:tic_tac_toe/presentation/providers.dart';
 
-void main() {
-  runApp(const MainApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(await createApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
+/// Composition root: the only place that knows every layer. It plugs the
+/// data layer's implementations into the domain ports the UI depends on.
+Future<Widget> createApp() async {
+  final preferences = await SharedPreferences.getInstance();
+  return ProviderScope(
+    overrides: [
+      scoreRepositoryProvider.overrideWithValue(
+        SharedPreferencesScoreRepository(preferences),
       ),
-    );
-  }
+    ],
+    child: const TicTacToeApp(),
+  );
 }
