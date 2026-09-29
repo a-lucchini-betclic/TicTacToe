@@ -1,0 +1,38 @@
+{
+  "@@locale": "en",
+  "appTitle": "Tic-Tac-Toe",
+  "homeYourMark": "Your mark",
+  "homeMarkHint": "X always plays first.",
+  "homeDifficulty": "Difficulty",
+  "homeStartGame": "Start game",
+  "difficultyEasy": "Easy",
+  "difficultyMedium": "Medium",
+  "difficultyHard": "Hard",
+  "scoreWins": "Wins",
+  "scoreLosses": "Losses",
+  "scoreDraws": "Draws",
+  "scoreLoadError": "Your score could not be loaded.",
+  "gameSummary": "You play {mark} · {difficulty}",
+  "@gameSummary": {
+    "placeholders": {
+      "mark": { "type": "String", "example": "X" },
+      "difficulty": { "type": "String", "example": "Hard" }
+    }
+  },
+  "statusYourTurn": "Your turn",
+  "statusCpuThinking": "CPU is thinking…",
+  "statusYouWon": "You won!",
+  "statusCpuWon": "CPU wins",
+  "statusDraw": "It's a draw",
+  "playAgain": "Play again",
+  "cellEmpty": "empty",
+  "cellLabel": "Row {row}, column {column}: {content}",
+  "@cellLabel": {
+    "description": "Screen reader label of a board cell.",
+    "placeholders": {
+      "row": { "type": "int" },
+      "column": { "type": "int" },
+      "content": { "type": "String", "example": "X" }
+    }
+  }
+}
