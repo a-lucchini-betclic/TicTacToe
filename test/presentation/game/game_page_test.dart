@@ -37,7 +37,10 @@ void main() {
 
     /// Taps a cell, then lets the CPU answer and the animations finish.
     Future<void> playTurn(WidgetTester tester, int index) async {
-      await tester.tap(find.byKey(ValueKey('cell-$index')));
+      final cell = find.byKey(ValueKey('cell-$index'));
+      // On small screens the board may be scrolled out of view.
+      await tester.ensureVisible(cell);
+      await tester.tap(cell);
       await tester.pump(_delay);
       await tester.pumpAndSettle();
     }
@@ -186,6 +189,59 @@ void main() {
         expect(
           tester.getSize(find.byType(FilledButton)).height,
           greaterThanOrEqualTo(48),
+        );
+      });
+
+      /// A small phone, such as a first-generation iPhone SE.
+      const smallPortrait = Size(320, 568);
+
+      for (final textScale in [2.0, 3.0]) {
+        testWidgets(
+          'scrolls instead of overflowing on a small phone at ${textScale}x '
+          'text',
+          (tester) async {
+            useScreen(tester, smallPortrait, textScale: textScale);
+            await pumpGame(tester, _humanIsX);
+            await playToTheEnd(tester);
+
+            expect(tester.takeException(), isNull);
+            // The board keeps its full width instead of being squeezed.
+            expect(
+              tester.getSize(find.byKey(const ValueKey('cell-0'))).shortestSide,
+              greaterThanOrEqualTo(48),
+            );
+
+            final playAgain = find.text('Play again');
+            await tester.ensureVisible(playAgain);
+            await tester.tap(playAgain);
+            await tester.pumpAndSettle();
+
+            expect(tester.takeException(), isNull);
+            expect(find.text('Your turn'), findsOneWidget);
+          },
+        );
+      }
+
+      testWidgets('fills the width with the board on a regular phone', (
+        tester,
+      ) async {
+        useScreen(tester, portrait);
+        await pumpGame(tester, _humanIsX);
+
+        // 402 wide minus 24 of padding on each side.
+        expect(
+          tester.getSize(find.byType(BoardView)),
+          const Size(354, 354),
+        );
+      });
+
+      testWidgets('caps the board at 480 on a tablet', (tester) async {
+        useScreen(tester, const Size(768, 1024));
+        await pumpGame(tester, _humanIsX);
+
+        expect(
+          tester.getSize(find.byType(BoardView)),
+          const Size(480, 480),
         );
       });
     });

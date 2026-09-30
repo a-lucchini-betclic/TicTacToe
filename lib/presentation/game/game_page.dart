@@ -78,26 +78,56 @@ class GamePage extends ConsumerWidget {
                       playAgain,
                     ],
                   )
-                : Column(
-                    children: [
-                      summary,
-                      const SizedBox(height: 8),
-                      status,
-                      const SizedBox(height: 24),
-                      Expanded(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: _maxBoardSide,
-                            ),
-                            child: board,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      playAgain,
-                    ],
+                : _Portrait(
+                    constraints: constraints,
+                    header: [summary, const SizedBox(height: 8), status],
+                    board: board,
+                    footer: playAgain,
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The summary and status above the board and the Play-again button below
+/// it. Fills the screen when everything fits; when large text makes the page
+/// taller than the screen, it scrolls and the board keeps its full width.
+class _Portrait extends StatelessWidget {
+  const _Portrait({
+    required this.constraints,
+    required this.header,
+    required this.board,
+    required this.footer,
+  });
+
+  final BoxConstraints constraints;
+  final List<Widget> header;
+  final Widget board;
+  final Widget footer;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: constraints.maxHeight),
+        child: IntrinsicHeight(
+          child: Column(
+            children: [
+              ...header,
+              const SizedBox(height: 24),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _maxBoardSide),
+                    child: board,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              footer,
+            ],
           ),
         ),
       ),
